@@ -6,13 +6,17 @@ import random
 import copy
 from collections import Counter
 
+
+##################################################
+# data class to import and hold csv data
+##################################################
 class data:
     def __init__(self, datafile, test=False):
         self.datafile = datafile
         self.read_data()
 
     def read_data(self):
-        f = open('/Users/Ally/Desktop/EECS349/HW2/tennis.csv') #make general later
+        f = open('tennis.csv') #make general later
         original_file = f.read()
         rowsplit_data = original_file.split("\r")
         self.examples = [rows.split(',') for rows in rowsplit_data]
@@ -21,7 +25,7 @@ class data:
         self.attributes = self.examples.pop(0)
         
         #create array that indicates whether each attribute is a numerical value or not
-        attr_type = open('/Users/Ally/Desktop/EECS349/HW2/tennistypes.csv') #make general later
+        attr_type = open('tennistypes.csv') #make general later
         orig_file = attr_type.read()
         self.attr_types = orig_file.split(',')
 
@@ -38,7 +42,9 @@ class data:
         #print str(orig_file)
         #print str(self.attr_types)
 
+##################################################
 # count number of examples with classification "1"
+##################################################
 def one_count(instances, attributes, classifier):
     count = 0
 
@@ -55,9 +61,10 @@ def one_count(instances, attributes, classifier):
     return count
 
 
-
-#need to account for missing data
-
+##################################################
+# main function, organize data and execute functions based on input
+# need to account for missing data
+##################################################
 def main():
     train_file = "tennis.csv"
     train_data = data(train_file)
