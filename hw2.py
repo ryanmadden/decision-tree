@@ -60,6 +60,24 @@ def one_count(instances, attributes, classifier):
 
     return count
 
+#####################################################
+# Calculate entropy relative to c-wise classification
+#####################################################
+def entropy_S(instances, attributes, classifier):
+    count = one_count(instances, attributes, classifier)
+    total = len(instances)
+    count0 = total - count
+    s = (-(count/total) * math.log2(count/total)) + (-(count0/total) * math.log2(count0/total))
+    return s
+
+#####################################################
+# Calculate iformation gain of each attribute
+#####################################################
+def gain(instances, attributes, classifier):
+    gain_vals = []
+    for a in attributes ##not finished, split recursively over
+
+
 
 ##################################################
 # main function, organize data and execute functions based on input
