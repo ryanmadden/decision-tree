@@ -42,6 +42,25 @@ class data:
         #print str(orig_file)
         #print str(self.attr_types)
 
+
+
+##################################################
+# compute tree recursively
+##################################################
+# def compute_tree(dataset)
+# initialize Tree
+    # if dataset is pure (all one result) or there is other stopping criteria then stop
+    # for all attributes a in dataset
+        # compute information-theoretic criteria if we split on a
+    # abest = best attribute according to above
+    # tree = create a decision node that tests abest in the root
+    # dv (v=1,2,3,...) = induced sub-datasets from D based on abest
+    # for all dv
+        # tree = compute_tree(dv)
+        # attach tree to the corresponding branch of Tree
+    # return tree
+    
+
 ##################################################
 # count number of examples with classification "1"
 ##################################################
@@ -72,7 +91,7 @@ def main():
     classifier = "Play"
 
     print one_count(train_data.examples, train_data.attributes, classifier)
-    
+
 
 if __name__ == "__main__":
 	main()
