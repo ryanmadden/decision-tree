@@ -38,7 +38,22 @@ class data:
         #print str(orig_file)
         #print str(self.attr_types)
 
-def one_count
+# count number of examples with classification "1"
+def one_count(instances, attributes, classifier):
+    count = 0
+
+    #find index of classifier
+    print attributes
+    for a in range(len(attributes)):
+        if attributes[a] == classifier:
+            class_index = a
+    
+    for i in instances:
+        if i[class_index] == "1":
+            count += 1
+
+    return count
+
 
 
 #need to account for missing data
@@ -46,6 +61,11 @@ def one_count
 def main():
     train_file = "tennis.csv"
     train_data = data(train_file)
+
+    classifier = "Play"
+
+    print one_count(train_data.examples, train_data.attributes, classifier)
+    
 
 if __name__ == "__main__":
 	main()
