@@ -35,7 +35,7 @@ class data:
                 if self.attributes[x] == 'True':
                     example[x] = float(example[x])
 
-        print str(self.examples)
+        #print str(self.examples)
         #print str(orig_file)
         #print str(self.attr_types)
 
@@ -83,26 +83,47 @@ def compute_tree(dataset, parent_node):
     #TODO impose minimum gain limit
     min_gain = 0
     dataset_entropy = calc_dataset_entropy(dataset)
-    for attribute in range(len(dataset.examples[0])):
+    for attr_index in range(len(dataset.examples[0])):
         # TODO compute gain if we split on a at best value
         # split_val = best value we could find to split on
         # if gain > max_gain and gain > min_gain
             # attr_to_split = attribute
+        local_max_gain = 0
+        local_split_val = None
+        attr_value_list = [example[attr_index] for example in dataset] # these are the values we can split on, now we must find the best one
+        attr_value_list = list(set(attr_value_list)) # remove duplicates from list of all attribute values
+
+        #TODO bin continuous variables
+
+        for val in attr_value_list:
+            # calculate the gain if we split on this value
+            # if gain is greater than local_max_gain, save this gain and this value
+            local_gain = calc_gain(dataset, entropy, val, attr_index) # calculate the gain if we split on this value
+            if (local_gain > local_max_gain):
+                local_max_gain = local_gain
+                local_split_val = val
+
+        if (local_max_gain > max_gain):
+            max_gain = local_max_gain
+            split_val = local_split_val
+            attr_to_split = attr_index
+
+
 
 
     #attr_to_split is now the best attribute according to our gain metric
 
-    if (max_gain <= min_gain):
-        print "Unable to find an effective split. Tree is complete."
-    elif (split_val is None or attr_to_split is None):
+    if (split_val is None or attr_to_split is None):
         print "Something went wrong. Couldn't find an attribute to split on or a split value."
+    elif (max_gain <= min_gain):
+        print "Unable to find an effective split. Tree is complete."
 
     node.attr_split_index = attr_to_split
     node.attr_split_value = split_val
     # currently doing one split per node so only two datasets are created
     upper_dataset = []
     lower_dataset = []
-    for example in dataset.examples
+    for example in dataset.examples:
         if (example[attr_to_split] >= split_val):
             upper_dataset.append(example)
         else
@@ -129,6 +150,24 @@ def calc_dataset_entropy(dataset):
 
     return entropy
 
+##################################################
+# Calculate the gain of a particular attribute split
+##################################################
+def calc_gain(dataset, entropy, val, attr_index):
+    attr_entropy = 0
+    total_examples = len(dataset.examples[0]);
+    gain_upper_dataset = []
+    gain_lower_dataset = []
+    for example in dataset.examples:
+        if (example[attr_index] >= val):
+            gain_upper_dataset.append(example)
+        else
+            gain_lower_dataset.append(example)
+
+    attr_entropy += calc_dataset_entropy(gain_upper_dataset)*len(gain_upper_dataset.examples[0])/total_examples
+    attr_entropy += calc_dataset_entropy(gain_lower_dataset)*len(gain_lower_dataset.examples[0])/total_examples
+
+    return entropy - attr_entropy
 
 ##################################################
 # count number of examples with classification "1"
@@ -156,11 +195,6 @@ def one_count(instances, attributes, classifier):
 def main():
     train_file = "tennis.csv"
     train_data = data(train_file)
-
-    classifier = "Play"
-
-    ones = one_count(train_data.examples, train_data.attributes, classifier)
-    print ones
     
     compute_tree(train_data)
 
