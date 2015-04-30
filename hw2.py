@@ -118,7 +118,7 @@ def compute_tree(dataset, parent_node, classifier):
     max_gain = 0 # The gain given by the best attribute
     split_val = None 
     #TODO impose minimum gain limit
-    min_gain = 0.01
+    min_gain = 0.00
     dataset_entropy = calc_dataset_entropy(dataset, classifier)
     for attr_index in range(len(dataset.examples[0])):
         # TODO compute gain if we split on a at best value
@@ -141,12 +141,11 @@ def compute_tree(dataset, parent_node, classifier):
 
 
             #TODO bin continuous variables
-            num_val = 0
             for val in attr_value_list:
-                num_val += 1
                 # calculate the gain if we split on this value
                 # if gain is greater than local_max_gain, save this gain and this value
                 local_gain = calc_gain(dataset, dataset_entropy, val, attr_index) # calculate the gain if we split on this value
+                # print "LOCAL GAIN: " + str(local_gain)  
                 if (local_gain > local_max_gain):
                     local_max_gain = local_gain
                     local_split_val = val
@@ -155,17 +154,20 @@ def compute_tree(dataset, parent_node, classifier):
                 max_gain = local_max_gain
                 split_val = local_split_val
                 attr_to_split = attr_index
+            # print "LOCAL MAX GAIN: " + str(local_max_gain)
 
     #attr_to_split is now the best attribute according to our gain metric
     if (split_val is None or attr_to_split is None):
         print "Something went wrong. Couldn't find an attribute to split on or a split value."
-    elif (max_gain <= min_gain or node.height > 10):
-        print "Unable to find an effective split. Branch is complete."
+    elif (max_gain <= min_gain or node.height > 9):
+        # print "Unable to find an effective split. Branch is complete."
         node.is_leaf = True
         node.classification = classify_leaf(dataset, classifier)
+        print dataset_entropy
         # node.classification = 1 #TODO pick what this should actually be
         return node
 
+    # print "MAX GAIN: " + str(max_gain)
     node.attr_split_index = attr_to_split
     node.attr_split = dataset.attributes[attr_to_split]
     node.attr_split_value = split_val
@@ -179,7 +181,7 @@ def compute_tree(dataset, parent_node, classifier):
     for example in dataset.examples:
         if (attr_to_split is not None and example[attr_to_split] >= split_val):
             upper_dataset.examples.append(example)
-        else:
+        elif (attr_to_split is not None):
             lower_dataset.examples.append(example)
 
     node.upper_child = compute_tree(upper_dataset, node, classifier)
@@ -205,13 +207,18 @@ def classify_leaf(dataset, classifier):
 def calc_dataset_entropy(dataset, classifier):
     ones = one_count(dataset.examples, dataset.attributes, classifier)
     total_examples = len(dataset.examples);
-    if (ones == total_examples or ones == 0):
-        return 0
+    # if (ones == total_examples or ones == 0):
+    #     return 0
     entropy = 0
-    p = ones/total_examples
-    entropy += p * math.log(p, 2)
+    p = ones / total_examples
+    if (p != 0):
+        entropy += p * math.log(p, 2)
     p = (total_examples - ones)/total_examples
-    entropy += p * math.log(p, 2)
+    if (p != 0):
+        entropy += p * math.log(p, 2)
+    # if (entropy == 0):
+        # print "ONES: " + str(ones)
+        # print "TOTAL: " + str(total_examples)
     entropy = -entropy
     return entropy
 
@@ -231,7 +238,7 @@ def calc_gain(dataset, entropy, val, attr_index):
     for example in dataset.examples:
         if (example[attr_index] >= val):
             gain_upper_dataset.examples.append(example)
-        else:
+        elif (example[attr_index] < val):
             gain_lower_dataset.examples.append(example)
 
     if (len(gain_upper_dataset.examples) == 0 or len(gain_lower_dataset.examples) == 0): #Splitting didn't actually split (we tried to split on the max or min of the attribute's range)
@@ -239,6 +246,7 @@ def calc_gain(dataset, entropy, val, attr_index):
 
     attr_entropy += calc_dataset_entropy(gain_upper_dataset, classifier)*len(gain_upper_dataset.examples)/total_examples
     attr_entropy += calc_dataset_entropy(gain_lower_dataset, classifier)*len(gain_lower_dataset.examples)/total_examples
+    # print "Attr entropy: " + str(attr_entropy)
 
     return entropy - attr_entropy
 
@@ -252,11 +260,13 @@ def one_count(instances, attributes, classifier):
     for a in range(len(attributes)):
         if attributes[a] == classifier:
             class_index = a
-    
+    class_index = 13
     for i in instances:
         if i[class_index] == "1":
             count += 1
-
+    # if (count == 0):
+    #     print "WARNING"
+    #     print instances
     return count
 
 ##################################################
@@ -325,7 +335,7 @@ def main():
     print "Compute tree..."
     root = compute_tree(dataset, None, classifier) 
     print "Print tree..."
-    print_tree(root)
+    # print_tree(root)
     print "Validate tree..."
     validate_tree(root, dataset)
 
