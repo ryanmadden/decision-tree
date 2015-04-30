@@ -8,49 +8,50 @@ from collections import Counter
 
 
 ##################################################
-# data class to import and hold csv data
+# data class to hold csv data
 ##################################################
 class data:
-    def __init__(self, datafile, test=False):
-        self.datafile = datafile
-        self.read_data()
+    def __init__(self):
+        self.examples = []
+        self.attributes = []
+        self. attr_types = []
 
-    def read_data(self):
-        f = open('tennis.csv') #make general later
-        original_file = f.read()
-        rowsplit_data = original_file.split("\r")
-        self.examples = [rows.split(',') for rows in rowsplit_data]
+##################################################
+# function to read in data from the .csv files
+##################################################
+def read_data(dataset):
+    f = open('tennis.csv') #TODO make general later
+    original_file = f.read()
+    rowsplit_data = original_file.split("\r")
+    dataset.examples = [rows.split(',') for rows in rowsplit_data]
 
-        #list attributes
-        self.attributes = self.examples.pop(0)
-        
-        #create array that indicates whether each attribute is a numerical value or not
-        attr_type = open('tennistypes.csv') #make general later
-        orig_file = attr_type.read()
-        self.attr_types = orig_file.split(',')
+    #list attributes
+    dataset.attributes = dataset.examples.pop(0)
+    
+    #create array that indicates whether each attribute is a numerical value or not
+    attr_type = open('tennistypes.csv') #TODO make general later
+    orig_file = attr_type.read()
+    dataset.attr_types = orig_file.split(',')
 
-        #convert attributes that are numeric to floats
-        for example in self.examples:
-            for x in range(len(self.examples[0])):
-                if self.attributes[x] == 'True':
-                    example[x] = float(example[x])
-
-        #print str(self.examples)
-        #print str(orig_file)
-        #print str(self.attr_types)
+    #convert attributes that are numeric to floats
+    for example in dataset.examples:
+        for x in range(len(dataset.examples[0])):
+            if dataset.attributes[x] == 'True':
+                example[x] = float(example[x])
 
 ##################################################
 # tree node class that will make up the tree
 ##################################################
 class treeNode():
-    def __init__(self, is_leaf, classification, attr_split_index, attr_split_value, parent, upper_child, lower_child):
+    def __init__(self, is_leaf, classification, attr_split_index, attr_split_value, parent, upper_child, lower_child, height):
         self.is_leaf = True
         self.classification = None
         self.attr_split_index = None
         self.attr_split_value = None
-        self.parent = None
+        self.parent = parent
         self.upper_child = None
         self.lower_child = None
+        self.height = None
 
 
 
@@ -70,13 +71,23 @@ class treeNode():
     # return tree
     
 def compute_tree(dataset, parent_node):
-    node = treeNode(True, None, None, None, parent_node, None, None)
+    # print dataset.examples
+    node = treeNode(True, None, None, None, parent_node, None, None, 0)
+    if (parent_node == None):
+        node.height = 0
+    else:
+        node.height = node.parent.height + 1
+    print node.height
     classifier = "Play" # TODO generalize target attribute
-    ones = one_count(train_data.examples, train_data.attributes, classifier)
+    ones = one_count(dataset.examples, dataset.attributes, classifier)
     if (len(dataset.examples) == ones):
         node.classification = 1
+        node.is_leaf = True
+        return node
     elif (ones == 0):
         node.classification = 0
+        node.is_leaf = True
+        return node
     attr_to_split = None # The index of the attribute we will split on
     max_gain = 0 # The gain given by the best attribute
     split_val = None 
@@ -88,31 +99,28 @@ def compute_tree(dataset, parent_node):
         # split_val = best value we could find to split on
         # if gain > max_gain and gain > min_gain
             # attr_to_split = attribute
-        local_max_gain = 0
-        local_split_val = None
-        attr_value_list = [example[attr_index] for example in dataset] # these are the values we can split on, now we must find the best one
-        attr_value_list = list(set(attr_value_list)) # remove duplicates from list of all attribute values
+        if (dataset.attributes[attr_index] != classifier):
+            local_max_gain = 0
+            local_split_val = None
+            attr_value_list = [example[attr_index] for example in dataset.examples] # these are the values we can split on, now we must find the best one
+            attr_value_list = list(set(attr_value_list)) # remove duplicates from list of all attribute values
 
-        #TODO bin continuous variables
+            #TODO bin continuous variables
+            for val in attr_value_list:
+                # calculate the gain if we split on this value
+                # if gain is greater than local_max_gain, save this gain and this value
+                local_gain = calc_gain(dataset, dataset_entropy, val, attr_index) # calculate the gain if we split on this value
+                if (local_gain > local_max_gain):
+                    local_max_gain = local_gain
+                    local_split_val = val
 
-        for val in attr_value_list:
-            # calculate the gain if we split on this value
-            # if gain is greater than local_max_gain, save this gain and this value
-            local_gain = calc_gain(dataset, entropy, val, attr_index) # calculate the gain if we split on this value
-            if (local_gain > local_max_gain):
-                local_max_gain = local_gain
-                local_split_val = val
-
-        if (local_max_gain > max_gain):
-            max_gain = local_max_gain
-            split_val = local_split_val
-            attr_to_split = attr_index
-
-
+            if (local_max_gain > max_gain):
+                max_gain = local_max_gain
+                split_val = local_split_val
+                attr_to_split = attr_index
 
 
     #attr_to_split is now the best attribute according to our gain metric
-
     if (split_val is None or attr_to_split is None):
         print "Something went wrong. Couldn't find an attribute to split on or a split value."
     elif (max_gain <= min_gain):
@@ -121,13 +129,17 @@ def compute_tree(dataset, parent_node):
     node.attr_split_index = attr_to_split
     node.attr_split_value = split_val
     # currently doing one split per node so only two datasets are created
-    upper_dataset = []
-    lower_dataset = []
+    upper_dataset = data()
+    lower_dataset = data()
+    upper_dataset.attributes = dataset.attributes
+    lower_dataset.attributes = dataset.attributes
+    upper_dataset.attr_types = dataset.attr_types
+    lower_dataset.attr_types = dataset.attr_types
     for example in dataset.examples:
-        if (example[attr_to_split] >= split_val):
-            upper_dataset.append(example)
-        else
-            lower_dataset.append(example)
+        if (attr_to_split is not None and example[attr_to_split] >= split_val):
+            upper_dataset.examples.append(example)
+        else:
+            lower_dataset.examples.append(example)
 
     node.upper_child = compute_tree(upper_dataset, node)
     node.lower_child = compute_tree(lower_dataset, node)
@@ -141,13 +153,15 @@ def calc_dataset_entropy(dataset):
     # TODO generalize classifier
     classifier = "Play"
     ones = one_count(dataset.examples, dataset.attributes, classifier)
-    total_examples = len(dataset.examples[0]);
+    total_examples = len(dataset.examples);
+    if (ones == total_examples or ones == 0):
+        return 0
     entropy = 0
     p = ones/total_examples
     entropy += p * math.log(p, 2)
     p = (total_examples - ones)/total_examples
     entropy += p * math.log(p, 2)
-
+    entropy = -entropy
     return entropy
 
 ##################################################
@@ -155,17 +169,24 @@ def calc_dataset_entropy(dataset):
 ##################################################
 def calc_gain(dataset, entropy, val, attr_index):
     attr_entropy = 0
-    total_examples = len(dataset.examples[0]);
-    gain_upper_dataset = []
-    gain_lower_dataset = []
+    total_examples = len(dataset.examples);
+    gain_upper_dataset = data()
+    gain_lower_dataset = data()
+    gain_upper_dataset.attributes = dataset.attributes
+    gain_lower_dataset.attributes = dataset.attributes
+    gain_upper_dataset.attr_types = dataset.attr_types
+    gain_lower_dataset.attr_types = dataset.attr_types
     for example in dataset.examples:
         if (example[attr_index] >= val):
-            gain_upper_dataset.append(example)
-        else
-            gain_lower_dataset.append(example)
+            gain_upper_dataset.examples.append(example)
+        else:
+            gain_lower_dataset.examples.append(example)
 
-    attr_entropy += calc_dataset_entropy(gain_upper_dataset)*len(gain_upper_dataset.examples[0])/total_examples
-    attr_entropy += calc_dataset_entropy(gain_lower_dataset)*len(gain_lower_dataset.examples[0])/total_examples
+    if (len(gain_upper_dataset.examples) == 0 or len(gain_lower_dataset.examples) == 0): #Splitting didn't actually split (we tried to split on the max or min of the attribute's range)
+        return -1
+
+    attr_entropy += calc_dataset_entropy(gain_upper_dataset)*len(gain_upper_dataset.examples)/total_examples
+    attr_entropy += calc_dataset_entropy(gain_lower_dataset)*len(gain_lower_dataset.examples)/total_examples
 
     return entropy - attr_entropy
 
@@ -174,9 +195,8 @@ def calc_gain(dataset, entropy, val, attr_index):
 ##################################################
 def one_count(instances, attributes, classifier):
     count = 0
-
+    class_index = None
     #find index of classifier
-    print attributes
     for a in range(len(attributes)):
         if attributes[a] == classifier:
             class_index = a
@@ -193,10 +213,10 @@ def one_count(instances, attributes, classifier):
 # need to account for missing data
 ##################################################
 def main():
-    train_file = "tennis.csv"
-    train_data = data(train_file)
+    dataset = data()
+    read_data(dataset)
     
-    compute_tree(train_data)
+    compute_tree(dataset, None)
 
 
 
