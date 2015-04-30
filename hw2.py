@@ -416,13 +416,14 @@ def main():
             print "Classifier: " + str(classifier)
 
         dataset.classifier = classifier
+        print "DATASET CLASSIFIER: " + str(classifier)
 
          #find index of classifier
         for a in range(len(dataset.attributes)):
             if dataset.attributes[a] == dataset.classifier:
                 dataset.class_index = a
             else:
-                dataset.class_index = dataset.attributes[-1]
+                dataset.class_index = range(len(dataset.attributes))[-1]
 
         preprocess2(dataset)
 
@@ -439,9 +440,19 @@ def main():
             print "\n"
         if ("-v" in args):
             datavalidate = args[args.index("-v") + 1]
+            print "DATAVALIDATE: " + str(datavalidate)
             print "Validating tree..."
+
             validateset = data(classifier)
             read_data(validateset, datavalidate, datatypes)
+            print "HELLO: " + str(validateset.classifier)
+            for a in range(len(dataset.attributes)):
+                if validateset.attributes[a] == validateset.classifier:
+                    validateset.class_index = a
+                else:
+                    validateset.class_index = range(len(validateset.attributes))[-1]
+            preprocess2(validateset)
+
             validate_tree(root, validateset)
         if ("-t" in args):
             #TODO
