@@ -118,11 +118,9 @@ def compute_tree(dataset, parent_node, classifier):
     attr_to_split = None # The index of the attribute we will split on
     max_gain = 0 # The gain given by the best attribute
     split_val = None 
-    #TODO impose minimum gain limit
     min_gain = 0.01
     dataset_entropy = calc_dataset_entropy(dataset, classifier)
     for attr_index in range(len(dataset.examples[0])):
-        # TODO compute gain if we split on a at best value
         # split_val = best value we could find to split on
         # if gain > max_gain and gain > min_gain
             # attr_to_split = attribute
@@ -140,8 +138,6 @@ def compute_tree(dataset, parent_node, classifier):
                     new_list.append(attr_value_list[x*ten_percentile])
                 attr_value_list = new_list
 
-
-            #TODO bin continuous variables
             for val in attr_value_list:
                 # calculate the gain if we split on this value
                 # if gain is greater than local_max_gain, save this gain and this value
@@ -165,7 +161,6 @@ def compute_tree(dataset, parent_node, classifier):
         node.is_leaf = True
         node.classification = classify_leaf(dataset, classifier)
         # print dataset_entropy
-        # node.classification = 1 #TODO pick what this should actually be
         return node
 
     # print "MAX GAIN: " + str(max_gain)
@@ -261,13 +256,11 @@ def one_count(instances, attributes, classifier):
     for a in range(len(attributes)):
         if attributes[a] == classifier:
             class_index = a
-    class_index = 13
+        else:
+            class_index = len(attributes) - 1
     for i in instances:
         if i[class_index] == "1":
             count += 1
-    # if (count == 0):
-    #     print "WARNING"
-    #     print instances
     return count
 
 ##################################################
@@ -363,7 +356,7 @@ def main():
     print "Validate tree..."
     validate_tree(root, validateset)
 
-    print_disjunctive(root, dataset, "")
+    # print_disjunctive(root, dataset, "")
 
 
 
