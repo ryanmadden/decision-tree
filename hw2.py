@@ -23,13 +23,11 @@ def read_data(dataset, datafile, datatypes):
     print "Reading data..."
     f = open(datafile)
     original_file = f.read()
-    rowsplit_data = original_file.split("\r")
+    rowsplit_data = original_file.splitlines()
     dataset.examples = [rows.split(',') for rows in rowsplit_data]
 
     #list attributes
     dataset.attributes = dataset.examples.pop(0)
-    print "HALP"
-    print dataset.attributes
     
     #create array that indicates whether each attribute is a numerical value or not
     attr_type = open(datatypes) 
@@ -334,15 +332,15 @@ def main():
     datavalidate = 'bvalidate.csv'
     dataset = data()
     read_data(dataset, datafile, datatypes)
-    # validateset = data()
-    # read_data(validateset, datavalidate, datatypes)
+    validateset = data()
+    read_data(validateset, datavalidate, datatypes)
     
     print "Compute tree..."
     root = compute_tree(dataset, None, classifier) 
     print "Print tree..."
     # print_tree(root)
     print "Validate tree..."
-    validate_tree(root, dataset)
+    validate_tree(root, validateset)
 
 
 
