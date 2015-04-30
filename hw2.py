@@ -77,7 +77,7 @@ def compute_tree(dataset, parent_node):
         node.height = 0
     else:
         node.height = node.parent.height + 1
-    print node.height
+    # print node.height
     classifier = "Play" # TODO generalize target attribute
     ones = one_count(dataset.examples, dataset.attributes, classifier)
     if (len(dataset.examples) == ones):
@@ -88,6 +88,8 @@ def compute_tree(dataset, parent_node):
         node.classification = 0
         node.is_leaf = True
         return node
+    else:
+        node.is_leaf = False
     attr_to_split = None # The index of the attribute we will split on
     max_gain = 0 # The gain given by the best attribute
     split_val = None 
@@ -207,6 +209,24 @@ def one_count(instances, attributes, classifier):
 
     return count
 
+##################################################
+# Print tree
+##################################################
+def print_tree(node):
+    if (node.is_leaf == True):
+        for x in range(node.height):
+            print "\t",
+        print "Classification: " + str(node.classification)
+        return
+    for x in range(node.height):
+            print "\t",
+    print "Split index: " + str(node.attr_split_index)
+    for x in range(node.height):
+            print "\t",
+    print "Split value: " + str(node.attr_split_value)
+    print_tree(node.upper_child)
+    print_tree(node.lower_child)
+
 
 ##################################################
 # main function, organize data and execute functions based on input
@@ -216,7 +236,8 @@ def main():
     dataset = data()
     read_data(dataset)
     
-    compute_tree(dataset, None)
+    root = compute_tree(dataset, None)
+    print_tree(root)
 
 
 
