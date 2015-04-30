@@ -5,6 +5,7 @@ import time
 import random
 import copy
 import sys
+import ast
 from collections import Counter
 
 
@@ -339,24 +340,71 @@ def print_disjunctive(node, dataset, dnf_string):
 # need to account for missing data
 ##################################################
 def main():
-    
-    classifier = "winner" #is this enough or can main take inputs where we give the dataset?
-    datafile = 'btrain.csv'
-    datatypes = 'datatypes.csv'
-    datavalidate = 'bvalidate.csv'
-    dataset = data()
-    read_data(dataset, datafile, datatypes)
-    validateset = data()
-    read_data(validateset, datavalidate, datatypes)
-    
-    print "Compute tree..."
-    root = compute_tree(dataset, None, classifier) 
-    print "Print tree..."
-    # print_tree(root)
-    print "Validate tree..."
-    validate_tree(root, validateset)
+    # args format: 
+        # script.py 
+        # <training filename> 
+        # <classifier name>
+        # <datatypes flag> <datatypes filename>
+        # <print flag>
+        # <validate tag> <validate filename>
+        # <test tag> <test filename>
 
-    # print_disjunctive(root, dataset, "")
+    args = str(sys.argv)
+    args = ast.literal_eval(args)
+    print args
+    if (len(args) < 2):
+        print "You have input less than the minimum number of arguments. Go back and read README.txt and do it right next time!"
+    elif (args[1][-4:] != ".csv"):
+        print "Your training file (second argument) must be a .csv!"
+    else:
+        datafile = args[1]
+        dataset = data()
+        if ("-d" in args):
+            datatypes = args[args.index("-d") + 1]
+        else:
+            datatypes = 'datatypes.csv'
+        read_data(dataset, datafile, datatypes)
+        arg3 = args[3]
+        if (arg3 != "-p" and arg3 != "-v" and arg3 != "-t"):
+            classifier = arg3
+        else:
+            classifier = dataset.attributes[-1]
+            print "Classifier: " + str(classifier)
+        print "Computing tree..."
+        root = compute_tree(dataset, None, classifier) 
+        if ("-p" in args):
+            print_disjunctive(root, dataset, "")
+            print "\n"
+        if ("-v" in args):
+            datavalidate = args[args.index("-v") + 1]
+            print "Validating tree..."
+            validateset = data()
+            read_data(validateset, datavalidate, datatypes)
+            validate_tree(root, validateset)
+        if ("-t" in args):
+            #TODO
+            print "I FUCKIGN LOVE TESTING"
+
+
+
+
+    # classifier = "winner" #is this enough or can main take inputs where we give the dataset?
+    # datafile = 'btrain.csv'
+    # datatypes = 'datatypes.csv'
+    # datavalidate = 'bvalidate.csv'
+    # dataset = data()
+    # read_data(dataset, datafile, datatypes)
+    # validateset = data()
+    # read_data(validateset, datavalidate, datatypes)
+    
+    # print "Compute tree..."
+    # root = compute_tree(dataset, None, classifier) 
+    # print "Print tree..."
+    # # print_tree(root)
+    # print "Validate tree..."
+    # validate_tree(root, validateset)
+
+    # # print_disjunctive(root, dataset, "")
 
 
 
