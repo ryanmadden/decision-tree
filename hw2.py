@@ -11,10 +11,12 @@ from collections import Counter
 # data class to hold csv data
 ##################################################
 class data():
-    def __init__(self):
+    def __init__(self, classifier):
         self.examples = []
         self.attributes = []
-        self. attr_types = [] 
+        self.attr_types = []
+        self.classifier = classifier
+        self.class_index = None
 
 ##################################################
 # function to read in data from the .csv files
@@ -28,13 +30,18 @@ def read_data(dataset, datafile, datatypes):
 
     #list attributes
     dataset.attributes = dataset.examples.pop(0)
+
+    #find index of classifier
+    for a in range(len(dataset.attributes)):
+        if dataset.attributes[a] == dataset.classifier:
+            dataset.class_index = a
     
     #create array that indicates whether each attribute is a numerical value or not
     attr_type = open(datatypes) 
     orig_file = attr_type.read()
     dataset.attr_types = orig_file.split(',')
 
-    preprocess(dataset)
+    preprocess2(dataset)
 
     #convert attributes that are numeric to floats
     for example in dataset.examples:
@@ -61,6 +68,51 @@ def preprocess(dataset):
         for attr_index in range(len(dataset.attributes)):
             if(example[attr_index] == '?'):
                 example[attr_index] = averages[attr_index]
+
+
+
+def preprocess2(dataset):
+    print "Preprocessing data..."
+    for attr_index in range(len(dataset.attributes)):
+        #if (dataset.attr_types[attr_index] ==
+        ex_0class = filter(lambda x: x[dataset.class_index] == '0', dataset.examples)
+        values_0class = [example[attr_index] for example in ex_0class]
+        print str(values_0class)
+    
+                           
+        ex_1class = filter(lambda x: x[dataset.class_index] == '1', dataset.examples)
+        values_1class = [example[attr_index] for example in ex_1class]
+        print str(values_1class)
+                
+        values = Counter(values_0class)
+        value_counts = values.most_common()
+        
+        mode0 = values.most_common(1)[0][0]
+        if mode0 == '?':
+            mode0 = values.most_common(2)[1][0]
+        print str(mode0) 
+
+        values = Counter(values_1class)
+        mode1 = values.most_common(1)[0][0]
+        
+        if mode1 == '?':
+            mode1 = values.most_common(2)[1][0]
+        print str(mode1)
+
+        mode_01 = [mode0, mode1]
+        print str(mode_01)
+
+        attr_modes = [0]*len(dataset.attributes)
+        attr_modes[attr_index] = mode_01
+        
+        for example in dataset.examples:
+            if (example[attr_index] == '?'):
+                if (example[dataset.class_index] == '0'):
+                    example[attr_index] = attr_modes[attr_index][0]
+                else:
+                    example[attr_index] = attr_modes[attr_index][1]
+               
+            
 
 
 ##################################################
@@ -168,8 +220,8 @@ def compute_tree(dataset, parent_node, classifier):
     node.attr_split = dataset.attributes[attr_to_split]
     node.attr_split_value = split_val
     # currently doing one split per node so only two datasets are created
-    upper_dataset = data()
-    lower_dataset = data()
+    upper_dataset = data(classifier)
+    lower_dataset = data(classifier)
     upper_dataset.attributes = dataset.attributes
     lower_dataset.attributes = dataset.attributes
     upper_dataset.attr_types = dataset.attr_types
@@ -220,8 +272,8 @@ def calc_gain(dataset, entropy, val, attr_index):
     classifier = dataset.attributes[attr_index]
     attr_entropy = 0
     total_examples = len(dataset.examples);
-    gain_upper_dataset = data()
-    gain_lower_dataset = data()
+    gain_upper_dataset = data(classifier)
+    gain_lower_dataset = data(classifier)
     gain_upper_dataset.attributes = dataset.attributes
     gain_lower_dataset.attributes = dataset.attributes
     gain_upper_dataset.attr_types = dataset.attr_types
@@ -314,10 +366,10 @@ def print_tree(node):
 ##################################################
 def main():
     
-    classifier = "winner" #is this enough or can main take inputs where we give the dataset?
-    datafile = 'btrain.csv'
-    datatypes = 'datatypes.csv'
-    dataset = data()
+    classifier = "Play" #is this enough or can main take inputs where we give the dataset?
+    datafile = 'tennis.csv'
+    datatypes = 'tennistypes.csv'
+    dataset = data(classifier)
     read_data(dataset, datafile, datatypes)
     
     print "Compute tree..."
