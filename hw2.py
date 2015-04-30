@@ -102,7 +102,7 @@ def compute_tree(dataset, parent_node, classifier):
         node.height = 0
     else:
         node.height = node.parent.height + 1
-    print node.height
+    # print node.height
     ones = one_count(dataset.examples, dataset.attributes, classifier)
     if (len(dataset.examples) == ones):
         node.classification = 1
