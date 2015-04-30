@@ -10,17 +10,17 @@ from collections import Counter
 ##################################################
 # data class to hold csv data
 ##################################################
-class data:
+class data():
     def __init__(self):
         self.examples = []
         self.attributes = []
-        self. attr_types = []
+        self. attr_types = [] 
 
 ##################################################
 # function to read in data from the .csv files
 ##################################################
-def read_data(dataset):
-    f = open('tennis.csv') #TODO make general later
+def read_data(dataset, datafile, datatypes):
+    f = open(datafile)
     original_file = f.read()
     rowsplit_data = original_file.split("\r")
     dataset.examples = [rows.split(',') for rows in rowsplit_data]
@@ -29,7 +29,7 @@ def read_data(dataset):
     dataset.attributes = dataset.examples.pop(0)
     
     #create array that indicates whether each attribute is a numerical value or not
-    attr_type = open('tennistypes.csv') #TODO make general later
+    attr_type = open(datatypes) 
     orig_file = attr_type.read()
     dataset.attr_types = orig_file.split(',')
 
@@ -46,6 +46,7 @@ class treeNode():
     def __init__(self, is_leaf, classification, attr_split_index, attr_split_value, parent, upper_child, lower_child, height):
         self.is_leaf = True
         self.classification = None
+        self.attr_split = None
         self.attr_split_index = None
         self.attr_split_value = None
         self.parent = parent
@@ -70,7 +71,7 @@ class treeNode():
         # attach tree to the corresponding branch of Tree
     # return tree
     
-def compute_tree(dataset, parent_node):
+def compute_tree(dataset, parent_node, classifier):
     # print dataset.examples
     node = treeNode(True, None, None, None, parent_node, None, None, 0)
     if (parent_node == None):
@@ -78,7 +79,6 @@ def compute_tree(dataset, parent_node):
     else:
         node.height = node.parent.height + 1
     # print node.height
-    classifier = "Play" # TODO generalize target attribute
     ones = one_count(dataset.examples, dataset.attributes, classifier)
     if (len(dataset.examples) == ones):
         node.classification = 1
@@ -95,7 +95,7 @@ def compute_tree(dataset, parent_node):
     split_val = None 
     #TODO impose minimum gain limit
     min_gain = 0
-    dataset_entropy = calc_dataset_entropy(dataset)
+    dataset_entropy = calc_dataset_entropy(dataset, classifier)
     for attr_index in range(len(dataset.examples[0])):
         # TODO compute gain if we split on a at best value
         # split_val = best value we could find to split on
@@ -129,6 +129,7 @@ def compute_tree(dataset, parent_node):
         print "Unable to find an effective split. Tree is complete."
 
     node.attr_split_index = attr_to_split
+    node.attr_split = dataset.attributes[attr_to_split]
     node.attr_split_value = split_val
     # currently doing one split per node so only two datasets are created
     upper_dataset = data()
@@ -143,17 +144,15 @@ def compute_tree(dataset, parent_node):
         else:
             lower_dataset.examples.append(example)
 
-    node.upper_child = compute_tree(upper_dataset, node)
-    node.lower_child = compute_tree(lower_dataset, node)
+    node.upper_child = compute_tree(upper_dataset, node, classifier)
+    node.lower_child = compute_tree(lower_dataset, node, classifier)
 
     return node
 
 ##################################################
 # Calculate the entropy of the current dataset
 ##################################################
-def calc_dataset_entropy(dataset):
-    # TODO generalize classifier
-    classifier = "Play"
+def calc_dataset_entropy(dataset, classifier):
     ones = one_count(dataset.examples, dataset.attributes, classifier)
     total_examples = len(dataset.examples);
     if (ones == total_examples or ones == 0):
@@ -170,6 +169,7 @@ def calc_dataset_entropy(dataset):
 # Calculate the gain of a particular attribute split
 ##################################################
 def calc_gain(dataset, entropy, val, attr_index):
+    classifier = dataset.attributes[attr_index]
     attr_entropy = 0
     total_examples = len(dataset.examples);
     gain_upper_dataset = data()
@@ -187,8 +187,8 @@ def calc_gain(dataset, entropy, val, attr_index):
     if (len(gain_upper_dataset.examples) == 0 or len(gain_lower_dataset.examples) == 0): #Splitting didn't actually split (we tried to split on the max or min of the attribute's range)
         return -1
 
-    attr_entropy += calc_dataset_entropy(gain_upper_dataset)*len(gain_upper_dataset.examples)/total_examples
-    attr_entropy += calc_dataset_entropy(gain_lower_dataset)*len(gain_lower_dataset.examples)/total_examples
+    attr_entropy += calc_dataset_entropy(gain_upper_dataset, classifier)*len(gain_upper_dataset.examples)/total_examples
+    attr_entropy += calc_dataset_entropy(gain_lower_dataset, classifier)*len(gain_lower_dataset.examples)/total_examples
 
     return entropy - attr_entropy
 
@@ -208,24 +208,6 @@ def one_count(instances, attributes, classifier):
             count += 1
 
     return count
-
-<<<<<<< HEAD
-#####################################################
-# Calculate entropy relative to c-wise classification
-#####################################################
-def entropy_S(instances, attributes, classifier):
-    count = one_count(instances, attributes, classifier)
-    total = len(instances)
-    count0 = total - count
-    s = (-(count/total) * math.log2(count/total)) + (-(count0/total) * math.log2(count0/total))
-    return s
-
-#####################################################
-# Calculate iformation gain of each attribute
-#####################################################
-def gain(instances, attributes, classifier):
-    gain_vals = []
-    for a in attributes ##not finished, split recursively over
 
 ##################################################
 # Validate tree
@@ -270,7 +252,7 @@ def print_tree(node):
         return
     for x in range(node.height):
             print "\t",
-    print "Split index: " + str(node.attr_split_index)
+    print "Split index: " + str(node.attr_split_index) + str(node.attr_split)
     for x in range(node.height):
             print "\t",
     print "Split value: " + str(node.attr_split_value)
@@ -283,10 +265,15 @@ def print_tree(node):
 # need to account for missing data
 ##################################################
 def main():
-    dataset = data()
-    read_data(dataset)
     
-    root = compute_tree(dataset, None)
+    classifier = "Play" #is this enough or can main take inputs where we give the dataset?
+    datafile = 'tennis.csv'
+    datatypes = 'tennistypes.csv'
+    dataset = data()
+    read_data(dataset, datafile, datatypes)
+    
+    
+    root = compute_tree(dataset, None, classifier) 
     print_tree(root)
     validate_tree(root, dataset)
 
