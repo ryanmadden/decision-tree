@@ -163,7 +163,7 @@ def compute_tree(dataset, parent_node, classifier):
         # print "Unable to find an effective split. Branch is complete."
         node.is_leaf = True
         node.classification = classify_leaf(dataset, classifier)
-        print dataset_entropy
+        # print dataset_entropy
         # node.classification = 1 #TODO pick what this should actually be
         return node
 
