@@ -227,13 +227,13 @@ def validate_example(node, example):
     if (node.is_leaf == True):
         projected = node.classification
         actual = int(example[-1])
-        print "Projected: " + str(projected)
-        print "Actual:    " + str(actual)
+        # print "Projected: " + str(projected)
+        # print "Actual:    " + str(actual)
         if (projected == actual):
-            print "TRUUUUUU" 
+            # print "TRUUUUUU" 
             return 1
         else:
-            print "NAHHHH"
+            # print "NAHHHH"
             return 0
     value = example[node.attr_split_index]
     if (value >= node.attr_split_value):
@@ -252,7 +252,7 @@ def print_tree(node):
         return
     for x in range(node.height):
             print "\t",
-    print "Split index: " + str(node.attr_split_index) + str(node.attr_split)
+    print "Split index: " + str(node.attr_split)
     for x in range(node.height):
             print "\t",
     print "Split value: " + str(node.attr_split_value)
