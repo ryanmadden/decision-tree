@@ -97,13 +97,12 @@ class treeNode():
     
 def compute_tree(dataset, parent_node, classifier):
     # print dataset.examples
-    print "recursed..."
     node = treeNode(True, None, None, None, parent_node, None, None, 0)
     if (parent_node == None):
         node.height = 0
     else:
         node.height = node.parent.height + 1
-    # print node.height
+    print node.height
     ones = one_count(dataset.examples, dataset.attributes, classifier)
     if (len(dataset.examples) == ones):
         node.classification = 1
@@ -119,7 +118,7 @@ def compute_tree(dataset, parent_node, classifier):
     max_gain = 0 # The gain given by the best attribute
     split_val = None 
     #TODO impose minimum gain limit
-    min_gain = 0.1
+    min_gain = 0.01
     dataset_entropy = calc_dataset_entropy(dataset, classifier)
     for attr_index in range(len(dataset.examples[0])):
         # TODO compute gain if we split on a at best value
@@ -131,11 +130,19 @@ def compute_tree(dataset, parent_node, classifier):
             local_split_val = None
             attr_value_list = [example[attr_index] for example in dataset.examples] # these are the values we can split on, now we must find the best one
             attr_value_list = list(set(attr_value_list)) # remove duplicates from list of all attribute values
+            if(len(attr_value_list) > 100):
+                attr_value_list = sorted(attr_value_list)
+                total = len(attr_value_list)
+                ten_percentile = int(total/10)
+                new_list = []
+                for x in range(1, 10):
+                    new_list.append(attr_value_list[x*ten_percentile])
+                attr_value_list = new_list
+
 
             #TODO bin continuous variables
             num_val = 0
             for val in attr_value_list:
-                print num_val
                 num_val += 1
                 # calculate the gain if we split on this value
                 # if gain is greater than local_max_gain, save this gain and this value
@@ -149,14 +156,14 @@ def compute_tree(dataset, parent_node, classifier):
                 split_val = local_split_val
                 attr_to_split = attr_index
 
-
     #attr_to_split is now the best attribute according to our gain metric
     if (split_val is None or attr_to_split is None):
         print "Something went wrong. Couldn't find an attribute to split on or a split value."
-    elif (max_gain <= min_gain):
-        print "Unable to find an effective split. Tree is complete."
+    elif (max_gain <= min_gain or node.height > 10):
+        print "Unable to find an effective split. Branch is complete."
         node.is_leaf = True
-        node.classification = 1 #TODO pick what this should actually be
+        node.classification = classify_leaf(dataset, classifier)
+        # node.classification = 1 #TODO pick what this should actually be
         return node
 
     node.attr_split_index = attr_to_split
@@ -179,6 +186,18 @@ def compute_tree(dataset, parent_node, classifier):
     node.lower_child = compute_tree(lower_dataset, node, classifier)
 
     return node
+
+##################################################
+# Classify dataset
+##################################################
+def classify_leaf(dataset, classifier):
+    ones = one_count(dataset.examples, dataset.attributes, classifier)
+    total = len(dataset.examples)
+    zeroes = total - ones
+    if (ones >= zeroes):
+        return 1
+    else:
+        return 0
 
 ##################################################
 # Calculate the entropy of the current dataset
