@@ -28,6 +28,8 @@ def read_data(dataset, datafile, datatypes):
 
     #list attributes
     dataset.attributes = dataset.examples.pop(0)
+    print "HALP"
+    print dataset.attributes
     
     #create array that indicates whether each attribute is a numerical value or not
     attr_type = open(datatypes) 
@@ -118,7 +120,7 @@ def compute_tree(dataset, parent_node, classifier):
     max_gain = 0 # The gain given by the best attribute
     split_val = None 
     #TODO impose minimum gain limit
-    min_gain = 0.00
+    min_gain = 0.01
     dataset_entropy = calc_dataset_entropy(dataset, classifier)
     for attr_index in range(len(dataset.examples[0])):
         # TODO compute gain if we split on a at best value
@@ -159,7 +161,7 @@ def compute_tree(dataset, parent_node, classifier):
     #attr_to_split is now the best attribute according to our gain metric
     if (split_val is None or attr_to_split is None):
         print "Something went wrong. Couldn't find an attribute to split on or a split value."
-    elif (max_gain <= min_gain or node.height > 9):
+    elif (max_gain <= min_gain or node.height > 20):
         # print "Unable to find an effective split. Branch is complete."
         node.is_leaf = True
         node.classification = classify_leaf(dataset, classifier)
@@ -329,8 +331,11 @@ def main():
     classifier = "winner" #is this enough or can main take inputs where we give the dataset?
     datafile = 'btrain.csv'
     datatypes = 'datatypes.csv'
+    datavalidate = 'bvalidate.csv'
     dataset = data()
     read_data(dataset, datafile, datatypes)
+    # validateset = data()
+    # read_data(validateset, datavalidate, datatypes)
     
     print "Compute tree..."
     root = compute_tree(dataset, None, classifier) 
