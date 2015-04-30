@@ -33,23 +33,11 @@ def read_data(dataset, datafile, datatypes):
     #list attributes
     dataset.attributes = dataset.examples.pop(0)
 
-    #find index of classifier
-    for a in range(len(dataset.attributes)):
-        if dataset.attributes[a] == dataset.classifier:
-            dataset.class_index = a
     
     #create array that indicates whether each attribute is a numerical value or not
     attr_type = open(datatypes) 
     orig_file = attr_type.read()
     dataset.attr_types = orig_file.split(',')
-
-    preprocess2(dataset)
-
-    #convert attributes that are numeric to floats
-    for example in dataset.examples:
-        for x in range(len(dataset.examples[0])):
-            if dataset.attributes[x] == 'True':
-                example[x] = float(example[x])
 
 ##################################################
 # Preprocess dataset
@@ -403,14 +391,13 @@ def main():
 
     args = str(sys.argv)
     args = ast.literal_eval(args)
-    print args
     if (len(args) < 2):
         print "You have input less than the minimum number of arguments. Go back and read README.txt and do it right next time!"
     elif (args[1][-4:] != ".csv"):
         print "Your training file (second argument) must be a .csv!"
     else:
         datafile = args[1]
-        dataset = data()
+        dataset = data("")
         if ("-d" in args):
             datatypes = args[args.index("-d") + 1]
         else:
@@ -422,6 +409,24 @@ def main():
         else:
             classifier = dataset.attributes[-1]
             print "Classifier: " + str(classifier)
+
+        dataset.classifier = classifier
+
+         #find index of classifier
+        for a in range(len(dataset.attributes)):
+            if dataset.attributes[a] == dataset.classifier:
+                dataset.class_index = a
+            else:
+                dataset.class_index = dataset.attributes[-1]
+
+        preprocess2(dataset)
+
+        #convert attributes that are numeric to floats
+        for example in dataset.examples:
+            for x in range(len(dataset.examples[0])):
+                if dataset.attributes[x] == 'True':
+                    example[x] = float(example[x])
+
         print "Computing tree..."
         root = compute_tree(dataset, None, classifier) 
         if ("-p" in args):
@@ -430,7 +435,7 @@ def main():
         if ("-v" in args):
             datavalidate = args[args.index("-v") + 1]
             print "Validating tree..."
-            validateset = data()
+            validateset = data(classifier)
             read_data(validateset, datavalidate, datatypes)
             validate_tree(root, validateset)
         if ("-t" in args):
