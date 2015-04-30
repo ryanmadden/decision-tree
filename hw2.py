@@ -82,7 +82,8 @@ def compute_tree(dataset, parent_node):
     split_val = None 
     #TODO impose minimum gain limit
     min_gain = 0
-    for attribute in range(len(self.examples[0])):
+    dataset_entropy = calc_dataset_entropy(dataset)
+    for attribute in range(len(dataset.examples[0])):
         # TODO compute gain if we split on a at best value
         # split_val = best value we could find to split on
         # if gain > max_gain and gain > min_gain
@@ -111,6 +112,23 @@ def compute_tree(dataset, parent_node):
     node.lower_child = compute_tree(lower_dataset, node)
 
     return node
+
+##################################################
+# Calculate the entropy of the current dataset
+##################################################
+def calc_dataset_entropy(dataset):
+    # TODO generalize classifier
+    classifier = "Play"
+    ones = one_count(dataset.examples, dataset.attributes, classifier)
+    total_examples = len(dataset.examples[0]);
+    entropy = 0
+    p = ones/total_examples
+    entropy += p * math.log(p, 2)
+    p = (total_examples - ones)/total_examples
+    entropy += p * math.log(p, 2)
+
+    return entropy
+
 
 ##################################################
 # count number of examples with classification "1"
