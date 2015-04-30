@@ -210,6 +210,38 @@ def one_count(instances, attributes, classifier):
     return count
 
 ##################################################
+# Validate tree
+##################################################
+def validate_tree(node, dataset):
+    total = len(dataset.examples)
+    correct = 0
+    for example in dataset.examples:
+        # validate example
+        correct += validate_example(node, example)
+    print "Score: " + str(100*correct/total) +"%"
+
+##################################################
+# Validate example
+##################################################
+def validate_example(node, example):
+    if (node.is_leaf == True):
+        projected = node.classification
+        actual = int(example[-1])
+        print "Projected: " + str(projected)
+        print "Actual:    " + str(actual)
+        if (projected == actual):
+            print "TRUUUUUU" 
+            return 1
+        else:
+            print "NAHHHH"
+            return 0
+    value = example[node.attr_split_index]
+    if (value >= node.attr_split_value):
+        return validate_example(node.upper_child, example)
+    else:
+        return validate_example(node.lower_child, example)
+
+##################################################
 # Print tree
 ##################################################
 def print_tree(node):
@@ -238,6 +270,7 @@ def main():
     
     root = compute_tree(dataset, None)
     print_tree(root)
+    validate_tree(root, dataset)
 
 
 
