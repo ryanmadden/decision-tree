@@ -4,6 +4,7 @@ import operator
 import time
 import random
 import copy
+import sys
 from collections import Counter
 
 
@@ -319,6 +320,26 @@ def print_tree(node):
     print_tree(node.upper_child)
     print_tree(node.lower_child)
 
+##################################################
+# Print tree in disjunctive normal form
+##################################################
+def print_disjunctive(node, dataset, dnf_string):
+    if (node.parent == None):
+        dnf_string = "( "
+    if (node.is_leaf == True):
+        if (node.classification == 1):
+            dnf_string = dnf_string[:-3]
+            dnf_string += ") ^ "
+            print dnf_string,
+        else:
+            return
+    else:
+        upper = dnf_string + str(dataset.attributes[node.attr_split_index]) + " >= " + str(node.attr_split_value) + " V "
+        print_disjunctive(node.upper_child, dataset, upper)
+        lower = dnf_string + str(dataset.attributes[node.attr_split_index]) + " < " + str(node.attr_split_value) + " V "
+        print_disjunctive(node.lower_child, dataset, lower)
+        return
+
 
 ##################################################
 # main function, organize data and execute functions based on input
@@ -341,6 +362,8 @@ def main():
     # print_tree(root)
     print "Validate tree..."
     validate_tree(root, validateset)
+
+    print_disjunctive(root, dataset, "")
 
 
 
