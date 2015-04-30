@@ -34,20 +34,29 @@ class data:
             for x in range(len(self.examples[0])):
                 if self.attributes[x] == 'True':
                     example[x] = float(example[x])
-                               
-
-        
 
         print str(self.examples)
         #print str(orig_file)
         #print str(self.attr_types)
+
+##################################################
+# tree node class that will make up the tree
+##################################################
+class treeNode():
+    def __init__(self, is_leaf, classification, attr_split_index, attr_split_value, parent, upper_child, lower_child):
+        self.is_leaf = True
+        self.classification = None
+        self.attr_split_index = None
+        self.attr_split_value = None
+        self.parent = None
+        self.upper_child = None
+        self.lower_child = None
 
 
 
 ##################################################
 # compute tree recursively
 ##################################################
-# def compute_tree(dataset)
 # initialize Tree
     # if dataset is pure (all one result) or there is other stopping criteria then stop
     # for all attributes a in dataset
@@ -60,6 +69,48 @@ class data:
         # attach tree to the corresponding branch of Tree
     # return tree
     
+def compute_tree(dataset, parent_node):
+    node = treeNode(True, None, None, None, parent_node, None, None)
+    classifier = "Play" # TODO generalize target attribute
+    ones = one_count(train_data.examples, train_data.attributes, classifier)
+    if (len(dataset.examples) == ones):
+        node.classification = 1
+    elif (ones == 0):
+        node.classification = 0
+    attr_to_split = None # The index of the attribute we will split on
+    max_gain = 0 # The gain given by the best attribute
+    split_val = None 
+    #TODO impose minimum gain limit
+    min_gain = 0
+    for attribute in range(len(self.examples[0])):
+        # TODO compute gain if we split on a at best value
+        # split_val = best value we could find to split on
+        # if gain > max_gain and gain > min_gain
+            # attr_to_split = attribute
+
+
+    #attr_to_split is now the best attribute according to our gain metric
+
+    if (max_gain <= min_gain):
+        print "Unable to find an effective split. Tree is complete."
+    elif (split_val is None or attr_to_split is None):
+        print "Something went wrong. Couldn't find an attribute to split on or a split value."
+
+    node.attr_split_index = attr_to_split
+    node.attr_split_value = split_val
+    # currently doing one split per node so only two datasets are created
+    upper_dataset = []
+    lower_dataset = []
+    for example in dataset.examples
+        if (example[attr_to_split] >= split_val):
+            upper_dataset.append(example)
+        else
+            lower_dataset.append(example)
+
+    node.upper_child = compute_tree(upper_dataset, node)
+    node.lower_child = compute_tree(lower_dataset, node)
+
+    return node
 
 ##################################################
 # count number of examples with classification "1"
@@ -90,7 +141,12 @@ def main():
 
     classifier = "Play"
 
-    print one_count(train_data.examples, train_data.attributes, classifier)
+    ones = one_count(train_data.examples, train_data.attributes, classifier)
+    print ones
+    
+    compute_tree(train_data)
+
+
 
 
 if __name__ == "__main__":
