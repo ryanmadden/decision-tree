@@ -63,16 +63,18 @@ def preprocess(dataset):
 
 def preprocess2(dataset):
     print "Preprocessing data..."
+
+    class_values = [example[dataset.class_index] for example in dataset.examples]
+    class_mode = Counter(class_values)
+    class_mode = class_mode.most_common(1)[0][0]
+                         
     for attr_index in range(len(dataset.attributes)):
         #if (dataset.attr_types[attr_index] ==
         ex_0class = filter(lambda x: x[dataset.class_index] == '0', dataset.examples)
-        values_0class = [example[attr_index] for example in ex_0class]
-        print str(values_0class)
-    
+        values_0class = [example[attr_index] for example in ex_0class]  
                            
         ex_1class = filter(lambda x: x[dataset.class_index] == '1', dataset.examples)
         values_1class = [example[attr_index] for example in ex_1class]
-        print str(values_1class)
                 
         values = Counter(values_0class)
         value_counts = values.most_common()
@@ -99,8 +101,11 @@ def preprocess2(dataset):
             if (example[attr_index] == '?'):
                 if (example[dataset.class_index] == '0'):
                     example[attr_index] = attr_modes[attr_index][0]
-                else:
+                elif (example[dataset.class_index] == '1'):
                     example[attr_index] = attr_modes[attr_index][1]
+                else:
+                    example[attr_index] = class_mode
+                    
                
             
 
