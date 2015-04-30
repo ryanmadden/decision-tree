@@ -82,17 +82,17 @@ def preprocess2(dataset):
         mode0 = values.most_common(1)[0][0]
         if mode0 == '?':
             mode0 = values.most_common(2)[1][0]
-        print str(mode0) 
+        # print str(mode0) 
 
         values = Counter(values_1class)
         mode1 = values.most_common(1)[0][0]
         
         if mode1 == '?':
             mode1 = values.most_common(2)[1][0]
-        print str(mode1)
+        # print str(mode1)
 
         mode_01 = [mode0, mode1]
-        print str(mode_01)
+        # print str(mode_01)
 
         attr_modes = [0]*len(dataset.attributes)
         attr_modes[attr_index] = mode_01
@@ -408,15 +408,13 @@ def main():
         else:
             datatypes = 'datatypes.csv'
         read_data(dataset, datafile, datatypes)
-        arg3 = args[3]
-        if (arg3 != "-p" and arg3 != "-v" and arg3 != "-t"):
+        arg3 = args[2]
+        if (arg3 in dataset.attributes):
             classifier = arg3
         else:
             classifier = dataset.attributes[-1]
-            print "Classifier: " + str(classifier)
 
         dataset.classifier = classifier
-        print "DATASET CLASSIFIER: " + str(classifier)
 
          #find index of classifier
         for a in range(len(dataset.attributes)):
@@ -440,12 +438,10 @@ def main():
             print "\n"
         if ("-v" in args):
             datavalidate = args[args.index("-v") + 1]
-            print "DATAVALIDATE: " + str(datavalidate)
             print "Validating tree..."
 
             validateset = data(classifier)
             read_data(validateset, datavalidate, datatypes)
-            print "HELLO: " + str(validateset.classifier)
             for a in range(len(dataset.attributes)):
                 if validateset.attributes[a] == validateset.classifier:
                     validateset.class_index = a
