@@ -97,8 +97,6 @@ def compute_tree(dataset, parent_node, classifier):
     min_gain = 0
     dataset_entropy = calc_dataset_entropy(dataset, classifier)
     for attr_index in range(len(dataset.examples[0])):
-        # TODO compute gain if we split on a at best value
-        # split_val = best value we could find to split on
         # if gain > max_gain and gain > min_gain
             # attr_to_split = attribute
         if (dataset.attributes[attr_index] != classifier):
