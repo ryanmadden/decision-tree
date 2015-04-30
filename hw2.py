@@ -20,6 +20,7 @@ class data():
 # function to read in data from the .csv files
 ##################################################
 def read_data(dataset, datafile, datatypes):
+    print "Reading data..."
     f = open(datafile)
     original_file = f.read()
     rowsplit_data = original_file.split("\r")
@@ -33,11 +34,34 @@ def read_data(dataset, datafile, datatypes):
     orig_file = attr_type.read()
     dataset.attr_types = orig_file.split(',')
 
+    preprocess(dataset)
+
     #convert attributes that are numeric to floats
     for example in dataset.examples:
         for x in range(len(dataset.examples[0])):
             if dataset.attributes[x] == 'True':
                 example[x] = float(example[x])
+
+##################################################
+# Preprocess dataset
+##################################################
+def preprocess(dataset):
+    print "Preprocessing data..."
+    averages = [0] * len(dataset.attributes)
+    total = len(dataset.examples)
+    for attr_index in range(len(dataset.attributes)):
+        attr_sum = 0
+        for example in dataset.examples:
+            if (example[attr_index] == '?'):
+                total -= 1
+            else:
+                attr_sum += float(example[attr_index])
+        averages[attr_index] = attr_sum/total
+    for example in dataset.examples:
+        for attr_index in range(len(dataset.attributes)):
+            if(example[attr_index] == '?'):
+                example[attr_index] = averages[attr_index]
+
 
 ##################################################
 # tree node class that will make up the tree
@@ -73,6 +97,7 @@ class treeNode():
     
 def compute_tree(dataset, parent_node, classifier):
     # print dataset.examples
+    print "recursed..."
     node = treeNode(True, None, None, None, parent_node, None, None, 0)
     if (parent_node == None):
         node.height = 0
@@ -94,7 +119,7 @@ def compute_tree(dataset, parent_node, classifier):
     max_gain = 0 # The gain given by the best attribute
     split_val = None 
     #TODO impose minimum gain limit
-    min_gain = 0
+    min_gain = 0.1
     dataset_entropy = calc_dataset_entropy(dataset, classifier)
     for attr_index in range(len(dataset.examples[0])):
         # TODO compute gain if we split on a at best value
@@ -108,7 +133,10 @@ def compute_tree(dataset, parent_node, classifier):
             attr_value_list = list(set(attr_value_list)) # remove duplicates from list of all attribute values
 
             #TODO bin continuous variables
+            num_val = 0
             for val in attr_value_list:
+                print num_val
+                num_val += 1
                 # calculate the gain if we split on this value
                 # if gain is greater than local_max_gain, save this gain and this value
                 local_gain = calc_gain(dataset, dataset_entropy, val, attr_index) # calculate the gain if we split on this value
@@ -127,6 +155,9 @@ def compute_tree(dataset, parent_node, classifier):
         print "Something went wrong. Couldn't find an attribute to split on or a split value."
     elif (max_gain <= min_gain):
         print "Unable to find an effective split. Tree is complete."
+        node.is_leaf = True
+        node.classification = 1 #TODO pick what this should actually be
+        return node
 
     node.attr_split_index = attr_to_split
     node.attr_split = dataset.attributes[attr_to_split]
@@ -266,15 +297,17 @@ def print_tree(node):
 ##################################################
 def main():
     
-    classifier = "Play" #is this enough or can main take inputs where we give the dataset?
-    datafile = 'tennis.csv'
-    datatypes = 'tennistypes.csv'
+    classifier = "winner" #is this enough or can main take inputs where we give the dataset?
+    datafile = 'btrain.csv'
+    datatypes = 'datatypes.csv'
     dataset = data()
     read_data(dataset, datafile, datatypes)
     
-    
+    print "Compute tree..."
     root = compute_tree(dataset, None, classifier) 
+    print "Print tree..."
     print_tree(root)
+    print "Validate tree..."
     validate_tree(root, dataset)
 
 
