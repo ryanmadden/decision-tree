@@ -105,6 +105,12 @@ def preprocess2(dataset):
                     example[attr_index] = attr_modes[attr_index][1]
                 else:
                     example[attr_index] = class_mode
+
+        #convert attributes that are numeric to floats
+        for example in dataset.examples:
+            for x in range(len(dataset.examples[0])):
+                if dataset.attributes[x] == 'True':
+                    example[x] = float(example[x])
                     
                
             
@@ -320,7 +326,7 @@ def prune_tree(root, node, dataset, best_score):
         # run validate_tree on a tree with the nodes parent as a leaf with its classification
         node.parent.is_leaf = True
         node.parent.classification = node.classification
-        if (node.height < 10):
+        if (node.height < 20):
             new_score = validate_tree(root, dataset)
         else:
             new_score = 0
@@ -464,14 +470,11 @@ def main():
                 dataset.class_index = a
             else:
                 dataset.class_index = range(len(dataset.attributes))[-1]
-
+                
+        unprocessed = copy.deepcopy(dataset)
+        print "dataset"
+        #print str(dataset.examples)
         preprocess2(dataset)
-
-        #convert attributes that are numeric to floats
-        for example in dataset.examples:
-            for x in range(len(dataset.examples[0])):
-                if dataset.attributes[x] == 'True':
-                    example[x] = float(example[x])
 
         print "Computing tree..."
         # dataset.examples = dataset.examples[1:5000]
@@ -490,20 +493,42 @@ def main():
                     validateset.class_index = a
                 else:
                     validateset.class_index = range(len(validateset.attributes))[-1]
+            print "validateset"
             preprocess2(validateset)
             best_score = validate_tree(root, validateset)
+            all_ex_score = copy.deepcopy(best_score)
             print "Initial (pre-pruning) validation set score: " + str(100*best_score) +"%"
         if ("-p" in args):
             if("-v" not in args):
                 print "Error: You must validate if you want to prune"
             else:
-                print "Post-pruning score on validation set: " + str(100*prune_tree(root, root, dataset, best_score)) + "%"
+                post_prune_accuracy = 100*prune_tree(root, root, validateset, best_score)
+                print "Post-pruning score on validation set: " + str(post_prune_accuracy) + "%"
         if ("-t" in args):
             #TODO
             print "I FUCKIGN LOVE TESTING"
 
-
-
+        for size_mult in range(1, 11):
+            percent = 0.1*size_mult
+            accuracy = 0
+            if (size_mult != 10):
+                for trials in range(1, 11):
+                    print "length unproc:  " + str(len(unprocessed.examples)) + "  " + str(trials)
+                    print str(len(dataset.examples))
+                    unprocessed.examples = random.sample(dataset.examples, int(percent*(len(dataset.examples))))
+                    #print str(unprocessed.examples)
+                    print "unprocessed:  " + str(size_mult) + "  " + str(trials)
+                    preprocess2(unprocessed)
+                    root = compute_tree(unprocessed, None, classifier)
+                    score = 100 * validate_tree(root, validateset)
+                    #score2 = float(str(100*prune_tree(root, root, unprocessed, score)))
+                    accuracy += score
+                accuracy = accuracy/10
+            elif (size_mult == 10):
+                accuracy = 100*all_ex_score
+            print "sample size: " + str(int(percent*(len(dataset.examples))))
+            print "accuracy: " + str(accuracy)
+            
 
     # classifier = "winner" #is this enough or can main take inputs where we give the dataset?
     # datafile = 'btrain.csv'
