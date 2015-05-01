@@ -6,6 +6,7 @@ import random
 import copy
 import sys
 import ast
+import csv
 from collections import Counter
 
 
@@ -42,25 +43,6 @@ def read_data(dataset, datafile, datatypes):
 ##################################################
 # Preprocess dataset
 ##################################################
-def preprocess(dataset):
-    print "Preprocessing data..."
-    averages = [0] * len(dataset.attributes)
-    total = len(dataset.examples)
-    for attr_index in range(len(dataset.attributes)):
-        attr_sum = 0
-        for example in dataset.examples:
-            if (example[attr_index] == '?'):
-                total -= 1
-            else:
-                attr_sum += float(example[attr_index])
-        averages[attr_index] = attr_sum/total
-    for example in dataset.examples:
-        for attr_index in range(len(dataset.attributes)):
-            if(example[attr_index] == '?'):
-                example[attr_index] = averages[attr_index]
-
-
-
 def preprocess2(dataset):
     print "Preprocessing data..."
 
@@ -111,10 +93,6 @@ def preprocess2(dataset):
             for x in range(len(dataset.examples[0])):
                 if dataset.attributes[x] == 'True':
                     example[x] = float(example[x])
-                    
-               
-            
-
 
 ##################################################
 # tree node class that will make up the tree
@@ -131,8 +109,6 @@ class treeNode():
         self.lower_child = None
         self.height = None
 
-
-
 ##################################################
 # compute tree recursively
 ##################################################
@@ -146,8 +122,7 @@ class treeNode():
     # for all dv
         # tree = compute_tree(dv)
         # attach tree to the corresponding branch of Tree
-    # return tree
-    
+    # return tree 
 def compute_tree(dataset, parent_node, classifier):
     # print dataset.examples
     node = treeNode(True, None, None, None, parent_node, None, None, 0)
@@ -356,7 +331,6 @@ def prune_tree(root, node, dataset, best_score):
 
         return new_score
 
-
 ##################################################
 # Validate tree
 ##################################################
@@ -388,6 +362,18 @@ def validate_example(node, example):
         return validate_example(node.upper_child, example)
     else:
         return validate_example(node.lower_child, example)
+
+##################################################
+# Test example
+##################################################
+def test_example(example, node, class_index):
+    if (node.is_leaf == True):
+        return node.classification
+    else:
+        if (example[node.attr_split_index] >= node.attr_split_value):
+            return test_example(example, node.upper_child, class_index)
+        else:
+            return test_example(example, node.lower_child, class_index)
 
 ##################################################
 # Print tree
@@ -426,7 +412,6 @@ def print_disjunctive(node, dataset, dnf_string):
         lower = dnf_string + str(dataset.attributes[node.attr_split_index]) + " < " + str(node.attr_split_value) + " V "
         print_disjunctive(node.lower_child, dataset, lower)
         return
-
 
 ##################################################
 # main function, organize data and execute functions based on input
@@ -472,7 +457,6 @@ def main():
                 dataset.class_index = range(len(dataset.attributes))[-1]
                 
         unprocessed = copy.deepcopy(dataset)
-        print "dataset"
         #print str(dataset.examples)
         preprocess2(dataset)
 
@@ -493,7 +477,7 @@ def main():
                     validateset.class_index = a
                 else:
                     validateset.class_index = range(len(validateset.attributes))[-1]
-            print "validateset"
+            # print "validateset"
             preprocess2(validateset)
             best_score = validate_tree(root, validateset)
             all_ex_score = copy.deepcopy(best_score)
@@ -506,50 +490,55 @@ def main():
                 print "Post-pruning score on validation set: " + str(post_prune_accuracy) + "%"
         if ("-t" in args):
             #TODO
-            print "I FUCKIGN LOVE TESTING"
+            datatest = args[args.index("-t") + 1]
+            testset = data(classifier)
+            read_data(testset, datatest, datatypes)
+            for a in range(len(dataset.attributes)):
+                if testset.attributes[a] == testset.classifier:
+                    testset.class_index = a
+                else:
+                    testset.class_index = range(len(testset.attributes))[-1]
+            print "Testing model on " + str(datatest)
+            for example in testset.examples:
+                example[testset.class_index] = '0'
+            testset.examples[0][testset.class_index] = '1'
+            testset.examples[1][testset.class_index] = '1'
+            testset.examples[2][testset.class_index] = '?'
+            # print testset.examples
+            preprocess2(testset)
+            b = open('results.csv', 'w')
+            a = csv.writer(b)
+            for example in testset.examples:
+                example[testset.class_index] = test_example(example, root, testset.class_index)
+            # result_data = testset
+            saveset = testset
+            saveset.examples = [saveset.attributes] + saveset.examples
+            a.writerows(saveset.examples)
+            b.close()
+            print "Testing complete. Results outputted to results.csv"
 
-        for size_mult in range(1, 11):
-            percent = 0.1*size_mult
-            accuracy = 0
-            if (size_mult != 10):
-                for trials in range(1, 11):
-                    print "length unproc:  " + str(len(unprocessed.examples)) + "  " + str(trials)
-                    print str(len(dataset.examples))
-                    unprocessed.examples = random.sample(dataset.examples, int(percent*(len(dataset.examples))))
-                    #print str(unprocessed.examples)
-                    print "unprocessed:  " + str(size_mult) + "  " + str(trials)
-                    preprocess2(unprocessed)
-                    root = compute_tree(unprocessed, None, classifier)
-                    score = 100 * validate_tree(root, validateset)
-                    #score2 = float(str(100*prune_tree(root, root, unprocessed, score)))
-                    accuracy += score
-                accuracy = accuracy/10
-            elif (size_mult == 10):
-                accuracy = 100*all_ex_score
-            print "sample size: " + str(int(percent*(len(dataset.examples))))
-            print "accuracy: " + str(accuracy)
+        # 
+        # for size_mult in range(1, 11):
+        #     percent = 0.1*size_mult
+        #     accuracy = 0
+        #     if (size_mult != 10):
+        #         for trials in range(1, 11):
+        #             print "length unproc:  " + str(len(unprocessed.examples)) + "  " + str(trials)
+        #             print str(len(dataset.examples))
+        #             unprocessed.examples = random.sample(dataset.examples, int(percent*(len(dataset.examples))))
+        #             #print str(unprocessed.examples)
+        #             print "unprocessed:  " + str(size_mult) + "  " + str(trials)
+        #             preprocess2(unprocessed)
+        #             root = compute_tree(unprocessed, None, classifier)
+        #             score = 100 * validate_tree(root, validateset)
+        #             #score2 = float(str(100*prune_tree(root, root, unprocessed, score)))
+        #             accuracy += score
+        #         accuracy = accuracy/10
+        #     elif (size_mult == 10):
+        #         accuracy = 100*all_ex_score
+        #     print "sample size: " + str(int(percent*(len(dataset.examples))))
+        #     print "accuracy: " + str(accuracy)
             
-
-    # classifier = "winner" #is this enough or can main take inputs where we give the dataset?
-    # datafile = 'btrain.csv'
-    # datatypes = 'datatypes.csv'
-    # datavalidate = 'bvalidate.csv'
-    # dataset = data()
-    # read_data(dataset, datafile, datatypes)
-    # validateset = data()
-    # read_data(validateset, datavalidate, datatypes)
-    
-    # print "Compute tree..."
-    # root = compute_tree(dataset, None, classifier) 
-    # print "Print tree..."
-    # # print_tree(root)
-    # print "Validate tree..."
-    # validate_tree(root, validateset)
-
-    # # print_disjunctive(root, dataset, "")
-
-
-
 
 if __name__ == "__main__":
 	main()
