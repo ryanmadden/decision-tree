@@ -310,6 +310,48 @@ def one_count(instances, attributes, classifier):
     return count
 
 ##################################################
+# Prune tree
+##################################################
+def prune_tree(root, node, dataset, best_score):
+    # if node is a leaf
+    if (node.is_leaf == True):
+        # get its classification
+        classification = node.classification
+        # run validate_tree on a tree with the nodes parent as a leaf with its classification
+        node.parent.is_leaf = True
+        node.parent.classification = node.classification
+        if (node.height < 10):
+            new_score = validate_tree(root, dataset)
+        else:
+            new_score = 0
+        # print node.parent.height    
+        # if its better, change it
+        if (new_score >= best_score):
+            # print "LET'S PRUNE"
+            # print "NEW SCORE: " + str(new_score)
+            return new_score
+        else:
+            node.parent.is_leaf = False
+            node.parent.classification = None
+            return best_score
+    # if its not a leaf
+    else:
+        # prune tree(node.upper_child)
+        new_score = prune_tree(root, node.upper_child, dataset, best_score)
+        # if its now a leaf, return
+        if (node.is_leaf == True):
+            return new_score
+        # prune tree(node.lower_child)
+        new_score = prune_tree(root, node.lower_child, dataset, new_score)
+        # if its now a leaf, return
+        if (node.is_leaf == True):
+            # return
+            return new_score
+
+        return new_score
+
+
+##################################################
 # Validate tree
 ##################################################
 def validate_tree(node, dataset):
@@ -318,7 +360,7 @@ def validate_tree(node, dataset):
     for example in dataset.examples:
         # validate example
         correct += validate_example(node, example)
-    print "Score: " + str(100*correct/total) +"%"
+    return correct/total
 
 ##################################################
 # Validate example
@@ -433,7 +475,7 @@ def main():
 
         print "Computing tree..."
         root = compute_tree(dataset, None, classifier) 
-        if ("-p" in args):
+        if ("-s" in args):
             print_disjunctive(root, dataset, "")
             print "\n"
         if ("-v" in args):
@@ -448,8 +490,13 @@ def main():
                 else:
                     validateset.class_index = range(len(validateset.attributes))[-1]
             preprocess2(validateset)
-
-            validate_tree(root, validateset)
+            best_score = validate_tree(root, validateset)
+            print "Initial (pre-pruning) validation set score: " + str(100*best_score) +"%"
+        if ("-p" in args):
+            if("-v" not in args):
+                print "Error: You must validate if you want to prune"
+            else:
+                print "Post-pruning score on validation set: " + str(100*prune_tree(root, root, dataset, best_score)) + "%"
         if ("-t" in args):
             #TODO
             print "I FUCKIGN LOVE TESTING"
