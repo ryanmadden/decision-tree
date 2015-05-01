@@ -16,7 +16,7 @@ hw2.py accepts parameters passed via the command line. The possible paramters ar
 * Pruning flag (-p) (Optional, you must include a validation file in order to prune)
 
 ### Example
-'''
+```
 python hw2.py btrain.csv -v bvalidate.csv -p -t btest.csv
-'''
+```
 The above command runs hw2.py with btrain.csv as the training set, bvalidate.csv as the validation set, btest.csv as the test set, and pruning enabled. The classifier is not specified so it defaults to the last column in the training set. Printing is not enabled.
