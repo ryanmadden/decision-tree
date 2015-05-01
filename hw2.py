@@ -474,6 +474,7 @@ def main():
                     example[x] = float(example[x])
 
         print "Computing tree..."
+        # dataset.examples = dataset.examples[1:5000]
         root = compute_tree(dataset, None, classifier) 
         if ("-s" in args):
             print_disjunctive(root, dataset, "")
