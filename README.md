@@ -1,9 +1,14 @@
 # decision-tree
-A C4.5 Decision Tree python implementation with pruning and continuous attribute multi-splitting
+A C4.5 Decision Tree python implementation with validation, pruning, and attribute multi-splitting
 Contributors: Ryan Madden and Ally Cody
 
 ## Requirements
 python 2.7.6 [Download](https://www.python.org/download/releases/2.7.6/)
+
+## Files
+* btrain.csv, bvalidate.csv, btest.csv - The training, validation, and testing sets used for building and testing the program
+* hw2.py - The decision tree program
+* datatypes.csv - A metadata file that indicates (with comma separated true/false entries) which attributes are numeric (true) and nominal (false) **Note: You must edit this file or supply your own if using a different dataset than the one provided**
 
 ## How to run
 hw2.py accepts parameters passed via the command line. The possible paramters are:
@@ -15,8 +20,14 @@ hw2.py accepts parameters passed via the command line. The possible paramters ar
 * Test flag (-t) followed by test filename (Optional, specifies file to use for testing)
 * Pruning flag (-p) (Optional, you must include a validation file in order to prune)
 
-### Example
+#### Examples
+#####Example 1
 ```
 python hw2.py btrain.csv -v bvalidate.csv -p -t btest.csv
 ```
-The above command runs hw2.py with btrain.csv as the training set, bvalidate.csv as the validation set, btest.csv as the test set, and pruning enabled. The classifier is not specified so it defaults to the last column in the training set. Printing is not enabled.
+This command runs hw2.py with btrain.csv as the training set, bvalidate.csv as the validation set, btest.csv as the test set, and pruning enabled. The classifier is not specified so it defaults to the last column in the training set. No datatypes file is specified so it defaults to datatypes.csv. Printing is not enabled.
+#####Example 2
+```
+python hw2.py btrain.csv winner -d datatypes.csv -v bvalidate.csv -p -s
+```
+This command runs hw2.py with btrain.csv as the training set, 'winner' as the classifier, datatypes.csv as the datatypes file, bvalidate.csv as the validation file, pruning enabled, and printing enabled. Testing is not enabled for this run
