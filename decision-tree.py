@@ -51,7 +51,7 @@ def preprocess2(dataset):
     class_mode = class_mode.most_common(1)[0][0]
                          
     for attr_index in range(len(dataset.attributes)):
-        #if (dataset.attr_types[attr_index] ==
+
         ex_0class = filter(lambda x: x[dataset.class_index] == '0', dataset.examples)
         values_0class = [example[attr_index] for example in ex_0class]  
                            
@@ -64,17 +64,14 @@ def preprocess2(dataset):
         mode0 = values.most_common(1)[0][0]
         if mode0 == '?':
             mode0 = values.most_common(2)[1][0]
-        # print str(mode0) 
 
         values = Counter(values_1class)
         mode1 = values.most_common(1)[0][0]
         
         if mode1 == '?':
             mode1 = values.most_common(2)[1][0]
-        # print str(mode1)
 
         mode_01 = [mode0, mode1]
-        # print str(mode_01)
 
         attr_modes = [0]*len(dataset.attributes)
         attr_modes[attr_index] = mode_01
@@ -112,6 +109,7 @@ class treeNode():
 ##################################################
 # compute tree recursively
 ##################################################
+
 # initialize Tree
     # if dataset is pure (all one result) or there is other stopping criteria then stop
     # for all attributes a in dataset
@@ -123,14 +121,14 @@ class treeNode():
         # tree = compute_tree(dv)
         # attach tree to the corresponding branch of Tree
     # return tree 
+
 def compute_tree(dataset, parent_node, classifier):
-    # print dataset.examples
     node = treeNode(True, None, None, None, parent_node, None, None, 0)
     if (parent_node == None):
         node.height = 0
     else:
         node.height = node.parent.height + 1
-    # print node.height
+
     ones = one_count(dataset.examples, dataset.attributes, classifier)
     if (len(dataset.examples) == ones):
         node.classification = 1
@@ -148,9 +146,7 @@ def compute_tree(dataset, parent_node, classifier):
     min_gain = 0.01
     dataset_entropy = calc_dataset_entropy(dataset, classifier)
     for attr_index in range(len(dataset.examples[0])):
-        # split_val = best value we could find to split on
-        # if gain > max_gain and gain > min_gain
-            # attr_to_split = attribute
+
         if (dataset.attributes[attr_index] != classifier):
             local_max_gain = 0
             local_split_val = None
@@ -169,7 +165,7 @@ def compute_tree(dataset, parent_node, classifier):
                 # calculate the gain if we split on this value
                 # if gain is greater than local_max_gain, save this gain and this value
                 local_gain = calc_gain(dataset, dataset_entropy, val, attr_index) # calculate the gain if we split on this value
-                # print "LOCAL GAIN: " + str(local_gain)  
+  
                 if (local_gain > local_max_gain):
                     local_max_gain = local_gain
                     local_split_val = val
@@ -178,19 +174,17 @@ def compute_tree(dataset, parent_node, classifier):
                 max_gain = local_max_gain
                 split_val = local_split_val
                 attr_to_split = attr_index
-            # print "LOCAL MAX GAIN: " + str(local_max_gain)
 
     #attr_to_split is now the best attribute according to our gain metric
     if (split_val is None or attr_to_split is None):
         print "Something went wrong. Couldn't find an attribute to split on or a split value."
     elif (max_gain <= min_gain or node.height > 20):
-        # print "Unable to find an effective split. Branch is complete."
+
         node.is_leaf = True
         node.classification = classify_leaf(dataset, classifier)
-        # print dataset_entropy
+
         return node
 
-    # print "MAX GAIN: " + str(max_gain)
     node.attr_split_index = attr_to_split
     node.attr_split = dataset.attributes[attr_to_split]
     node.attr_split_value = split_val
@@ -230,8 +224,7 @@ def classify_leaf(dataset, classifier):
 def calc_dataset_entropy(dataset, classifier):
     ones = one_count(dataset.examples, dataset.attributes, classifier)
     total_examples = len(dataset.examples);
-    # if (ones == total_examples or ones == 0):
-    #     return 0
+
     entropy = 0
     p = ones / total_examples
     if (p != 0):
@@ -239,9 +232,7 @@ def calc_dataset_entropy(dataset, classifier):
     p = (total_examples - ones)/total_examples
     if (p != 0):
         entropy += p * math.log(p, 2)
-    # if (entropy == 0):
-        # print "ONES: " + str(ones)
-        # print "TOTAL: " + str(total_examples)
+
     entropy = -entropy
     return entropy
 
@@ -269,7 +260,6 @@ def calc_gain(dataset, entropy, val, attr_index):
 
     attr_entropy += calc_dataset_entropy(gain_upper_dataset, classifier)*len(gain_upper_dataset.examples)/total_examples
     attr_entropy += calc_dataset_entropy(gain_lower_dataset, classifier)*len(gain_lower_dataset.examples)/total_examples
-    # print "Attr entropy: " + str(attr_entropy)
 
     return entropy - attr_entropy
 
@@ -305,11 +295,9 @@ def prune_tree(root, node, dataset, best_score):
             new_score = validate_tree(root, dataset)
         else:
             new_score = 0
-        # print node.parent.height    
+  
         # if its better, change it
         if (new_score >= best_score):
-            # print "LET'S PRUNE"
-            # print "NEW SCORE: " + str(new_score)
             return new_score
         else:
             node.parent.is_leaf = False
@@ -326,7 +314,6 @@ def prune_tree(root, node, dataset, best_score):
         new_score = prune_tree(root, node.lower_child, dataset, new_score)
         # if its now a leaf, return
         if (node.is_leaf == True):
-            # return
             return new_score
 
         return new_score
@@ -349,13 +336,9 @@ def validate_example(node, example):
     if (node.is_leaf == True):
         projected = node.classification
         actual = int(example[-1])
-        # print "Projected: " + str(projected)
-        # print "Actual:    " + str(actual)
-        if (projected == actual):
-            # print "TRUUUUUU" 
+        if (projected == actual): 
             return 1
         else:
-            # print "NAHHHH"
             return 0
     value = example[node.attr_split_index]
     if (value >= node.attr_split_value):
@@ -417,16 +400,8 @@ def print_disjunctive(node, dataset, dnf_string):
 # main function, organize data and execute functions based on input
 # need to account for missing data
 ##################################################
-def main():
-    # args format: 
-        # script.py 
-        # <training filename> 
-        # <classifier name>
-        # <datatypes flag> <datatypes filename>
-        # <print flag>
-        # <validate tag> <validate filename>
-        # <test tag> <test filename>
 
+def main():
     args = str(sys.argv)
     args = ast.literal_eval(args)
     if (len(args) < 2):
@@ -449,7 +424,7 @@ def main():
 
         dataset.classifier = classifier
 
-         #find index of classifier
+        #find index of classifier
         for a in range(len(dataset.attributes)):
             if dataset.attributes[a] == dataset.classifier:
                 dataset.class_index = a
@@ -457,11 +432,9 @@ def main():
                 dataset.class_index = range(len(dataset.attributes))[-1]
                 
         unprocessed = copy.deepcopy(dataset)
-        #print str(dataset.examples)
         preprocess2(dataset)
 
         print "Computing tree..."
-        # dataset.examples = dataset.examples[1:5000]
         root = compute_tree(dataset, None, classifier) 
         if ("-s" in args):
             print_disjunctive(root, dataset, "")
@@ -477,7 +450,6 @@ def main():
                     validateset.class_index = a
                 else:
                     validateset.class_index = range(len(validateset.attributes))[-1]
-            # print "validateset"
             preprocess2(validateset)
             best_score = validate_tree(root, validateset)
             all_ex_score = copy.deepcopy(best_score)
@@ -489,7 +461,6 @@ def main():
                 post_prune_accuracy = 100*prune_tree(root, root, validateset, best_score)
                 print "Post-pruning score on validation set: " + str(post_prune_accuracy) + "%"
         if ("-t" in args):
-            #TODO
             datatest = args[args.index("-t") + 1]
             testset = data(classifier)
             read_data(testset, datatest, datatypes)
@@ -504,41 +475,16 @@ def main():
             testset.examples[0][testset.class_index] = '1'
             testset.examples[1][testset.class_index] = '1'
             testset.examples[2][testset.class_index] = '?'
-            # print testset.examples
             preprocess2(testset)
             b = open('results.csv', 'w')
             a = csv.writer(b)
             for example in testset.examples:
                 example[testset.class_index] = test_example(example, root, testset.class_index)
-            # result_data = testset
             saveset = testset
             saveset.examples = [saveset.attributes] + saveset.examples
             a.writerows(saveset.examples)
             b.close()
             print "Testing complete. Results outputted to results.csv"
-
-        # 
-        # for size_mult in range(1, 11):
-        #     percent = 0.1*size_mult
-        #     accuracy = 0
-        #     if (size_mult != 10):
-        #         for trials in range(1, 11):
-        #             print "length unproc:  " + str(len(unprocessed.examples)) + "  " + str(trials)
-        #             print str(len(dataset.examples))
-        #             unprocessed.examples = random.sample(dataset.examples, int(percent*(len(dataset.examples))))
-        #             #print str(unprocessed.examples)
-        #             print "unprocessed:  " + str(size_mult) + "  " + str(trials)
-        #             preprocess2(unprocessed)
-        #             root = compute_tree(unprocessed, None, classifier)
-        #             score = 100 * validate_tree(root, validateset)
-        #             #score2 = float(str(100*prune_tree(root, root, unprocessed, score)))
-        #             accuracy += score
-        #         accuracy = accuracy/10
-        #     elif (size_mult == 10):
-        #         accuracy = 100*all_ex_score
-        #     print "sample size: " + str(int(percent*(len(dataset.examples))))
-        #     print "accuracy: " + str(accuracy)
             
-
 if __name__ == "__main__":
 	main()
